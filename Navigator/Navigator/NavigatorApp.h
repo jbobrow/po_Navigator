@@ -5,7 +5,7 @@
 #include "poObject.h"
 #include "Navigator.h"
 
-class NavigatorApp : public poObject {
+class NavigatorApp : public po::Object {
 public:
 	NavigatorApp();
 	virtual ~NavigatorApp();
@@ -16,7 +16,7 @@ public:
 	
     virtual void eventHandler(poEvent *event);
 	
-    virtual void messageHandler(const std::string &msg, const poDictionary& dict=poDictionary());
+    virtual void messageHandler(const std::string &msg, const poDictionary& dict=po::Dictionary());
 	
 	Navigator	*nav;
 };

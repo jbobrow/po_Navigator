@@ -4,19 +4,19 @@
 Navigator::Navigator(float w, float h)
 {
 	// Draw anything to this canvas and it will be shown on the map and mini map
-	canvas = new poRectShape(w, h);
+	canvas = new po::RectShape(w, h);
 	addChild(canvas);
 	
-	canvasFBO = new poFBO(canvas->getWidth(), canvas->getHeight(), poFBOConfig().setNumMultisamples(4));
+	canvasFBO = new po::FBO(canvas->getWidth(), canvas->getHeight(), poFBOConfig().setNumMultisamples(4));
 	canvas->addModifier(canvasFBO);
 	
 	// This map will be a dragable and visible version of the canvas (remember the canvas is not drawn, just used for the fbo)
-	map = new poRectShape(canvas->getWidth(), canvas->getHeight());
+	map = new po::RectShape(canvas->getWidth(), canvas->getHeight());
 	map->placeTexture(canvasFBO->getColorTexture());
 	addChild(map);
 	
 	// This mini map will show exactly what is on the larger map
-	miniMap = new poRectShape( 200, 200 * canvas->getHeight()/canvas->getWidth());
+	miniMap = new po::RectShape( 200, 200 * canvas->getHeight()/canvas->getWidth());
 	miniMap->setAlignment(PO_ALIGN_TOP_RIGHT);
 	miniMap->position.set(getWindowWidth()-20, 20, 0);
 	miniMap->generateStroke(2).strokeColor = poColor::black;
@@ -24,7 +24,7 @@ Navigator::Navigator(float w, float h)
 	addChild(miniMap);
 	
 	// Mask the miniMap, because I am goint to dim the map with a really large stroked rectangle
-	miniMapMask = new poGeometryMask(new poRectShape(miniMap->getWidth(), miniMap->getHeight()));
+	miniMapMask = new po::GeometryMask(new po::RectShape(miniMap->getWidth(), miniMap->getHeight()));
 	miniMap->addModifier(miniMapMask);
 	
 	// Calculate highlight size
@@ -33,32 +33,32 @@ Navigator::Navigator(float w, float h)
 	
 	// Create a highlight on the mini map by darkening the area around our highlight
 	// note, you could just put a red box, but I think this is a nicer effect
-	highlight = new poRectShape(_w, _h);
+	highlight = new po::RectShape(_w, _h);
 	highlight->fillEnabled = false;
 	highlight->generateStroke(200, PO_STROKE_PLACE_OUTSIDE).strokeColor = poColor(0,0,0,.5);
 	highlight->position.set(0,0,0);
 	miniMap->addChild(highlight);
 	
 	// Just for emphasis, let's put a red stroke there too :)
-	poRectShape *highlightStroke = new poRectShape(_w, _h);
+	po::RectShape *highlightStroke = new po::RectShape(_w, _h);
 	highlightStroke->fillEnabled = false;
 	highlightStroke->generateStroke(2, PO_STROKE_PLACE_OUTSIDE).strokeColor = poColor::red;
 	highlight->addChild(highlightStroke);
 	
 	// add our drag events to the map
-	map->addEvent(PO_MOUSE_DOWN_INSIDE_EVENT, this);
-	map->addEvent(PO_MOUSE_DRAG_INSIDE_EVENT, this);
+	map->addEvent(po::MOUSE_DOWN_INSIDE_EVENT, this);
+	map->addEvent(po::MOUSE_DRAG_INSIDE_EVENT, this);
 	
 	// add our drag events to the highlight
-	highlight->addEvent(PO_MOUSE_DOWN_INSIDE_EVENT, this);
-	highlight->addEvent(PO_MOUSE_DRAG_INSIDE_EVENT, this);
+	highlight->addEvent(po::MOUSE_DOWN_INSIDE_EVENT, this);
+	highlight->addEvent(po::MOUSE_DRAG_INSIDE_EVENT, this);
 }
 
 Navigator::~Navigator()
 {
 }
 
-void Navigator::addToCanvas(poObject *o)
+void Navigator::addToCanvas(po::Object *o)
 {
 	canvas->addChild(o);
 }
@@ -86,18 +86,18 @@ void Navigator::update()
 {
 }
 
-void Navigator::eventHandler(poEvent *event)
+void Navigator::eventHandler(po::Event *event)
 {
 	if( event->source == map ){							// oh, so you clicked on the map
 		
 		switch ( event->type ){
 				
-			case PO_MOUSE_DOWN_INSIDE_EVENT:			// I'm gonna remember where you grabbed hold
+			case po::MOUSE_DOWN_INSIDE_EVENT:			// I'm gonna remember where you grabbed hold
 				map->positionTween.stop();				// and stop smoothing any previous movement
 				grabPoint = event->globalPosition - map->position;
 				break;
 				
-			case PO_MOUSE_DRAG_INSIDE_EVENT:			// come with me, right this way
+			case po::MOUSE_DRAG_INSIDE_EVENT:			// come with me, right this way
 				map->position = event->globalPosition - grabPoint;
 				highlight->position = -map->position * miniMap->getWidth()/map->getWidth();
 				break;
@@ -110,15 +110,16 @@ void Navigator::eventHandler(poEvent *event)
 		
 		switch ( event->type ){
 				
-			case PO_MOUSE_DOWN_INSIDE_EVENT:			// yeah, let's remember where we started
+			case po::MOUSE_DOWN_INSIDE_EVENT:			// yeah, let's remember where we started
 				grabPoint = event->globalPosition - miniMap->position - highlight->position;
 				break;
 				
-			case PO_MOUSE_DRAG_INSIDE_EVENT:			// since you suck at smoothly draggin this, I'll help you out :)
+			case po::MOUSE_DRAG_INSIDE_EVENT:			// since you suck at smoothly draggin this, I'll help you out :)
 				highlight->position = event->globalPosition - miniMap->position - grabPoint;
+				po::Point targetMapPosition = -highlight->position * map->getWidth()/miniMap->getWidth();
 				map->positionTween
-					.set(-highlight->position * map->getWidth()/miniMap->getWidth())
-					.setTweenFunction(PO_TWEEN_GOTO_FUNC)
+					.set(targetMapPosition)
+					.setTweenFunction(po::TWEEN_GOTO_FUNC)
 					.setExtraValues(.9)
 					.start();
 				break;
@@ -128,6 +129,6 @@ void Navigator::eventHandler(poEvent *event)
 	}
 }
 
-void Navigator::messageHandler(const std::string &msg, const poDictionary& dict) 
+void Navigator::messageHandler(const std::string &msg, const po::Dictionary& dict)
 {
 }

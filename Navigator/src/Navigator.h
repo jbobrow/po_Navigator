@@ -9,29 +9,29 @@
 #include "poFBO.h"
 #include "poGeometryMask.h"
 
-class Navigator : public poObject
+class Navigator : public po::Object
 {
 public:
 	Navigator(float w, float h);
 	virtual ~Navigator();
 	
-	void addToCanvas(poObject *o);
+	void addToCanvas(po::Object *o);
 	void clearCanvas();
 	void resizeCanvas(float w, float h);
 	
 	virtual void update();
-	virtual void eventHandler(poEvent *event);
-	virtual void messageHandler(const std::string &msg, const poDictionary& dict=poDictionary());
+	virtual void eventHandler(po::Event *event);
+	virtual void messageHandler(const std::string &msg, const poDictionary& dict=po::Dictionary());
 	
-	poRectShape		*canvas;
-	poFBO			*canvasFBO;
+	po::RectShape		*canvas;
+	po::FBO			*canvasFBO;
 	
-	poRectShape		*map;
+	po::RectShape		*map;
 	
-	poRectShape		*miniMap;
-	poGeometryMask	*miniMapMask;
-	poRectShape		*highlight;
-	poRectShape		*highlightStroke;
+	po::RectShape		*miniMap;
+	po::GeometryMask	*miniMapMask;
+	po::RectShape		*highlight;
+	po::RectShape		*highlightStroke;
 	
-	poPoint			grabPoint;
+	po::Point			grabPoint;
 };
